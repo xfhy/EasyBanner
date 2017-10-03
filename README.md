@@ -3,7 +3,7 @@
 > 一个轻松实现简单banner的框架，轻松实现。。。。
 
 ### 先上效果图：
-![](http://olg7c0d2n.bkt.clouddn.com/17-10-3/64062219.jpg)]
+![](http://olg7c0d2n.bkt.clouddn.com/17-10-3/64062219.jpg)
 
 ### 已实现的功能
 * 自动轮播
