@@ -139,14 +139,14 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
             throw new IllegalArgumentException("传入图片地址或广告内容不能为空");
         }
 
-        if(imageUrlList.size() != contentList.size()){
+        if (imageUrlList.size() != contentList.size()) {
             throw new IllegalArgumentException("传入图片地址或广告内容数量必须一致");
         }
 
         initView();
         initData();
     }
-
+    //int touchFlags = 0;
     /**
      * 初始化数据
      */
@@ -189,23 +189,6 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         //页面切换监听器
         mViewPager.addOnPageChangeListener(this);
 
-        //实现ViewPager的点击事件
-        mViewPager.setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                switch (motionEvent.getAction()) {
-                    case MotionEvent.ACTION_UP:
-                        int currentItem = mViewPager.getCurrentItem() % imageUrlList.size();
-                        //回调
-                        if (listener != null) {
-                            listener.onItemClick(currentItem, contentList.get(currentItem));
-                        }
-                        break;
-                }
-                return false;
-            }
-        });
-
         //将ViewPager的起始位置放在  一个很大的数处，那么一开始就可以往左划动了   那个数必须是imageUrlList.size()的倍数
         int remainder = (Integer.MAX_VALUE / 2) % imageUrlList.size();
         mViewPager.setCurrentItem(Integer.MAX_VALUE / 2 - remainder);
@@ -241,7 +224,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     public boolean dispatchTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                isTouched = true;
+                isTouched = true;   //正在触摸  按下
                 break;
             case MotionEvent.ACTION_MOVE:
                 break;
@@ -292,7 +275,19 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            ImageView imageView = imageViewList.get(position % imageUrlList.size());
+            final int newPosition = position % imageUrlList.size();
+            ImageView imageView = imageViewList.get(newPosition);
+
+            //设置点击事件
+            imageView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //回调
+                    if (listener != null) {
+                        listener.onItemClick(newPosition, contentList.get(newPosition));
+                    }
+                }
+            });
             container.addView(imageView);
             return imageView;
         }
