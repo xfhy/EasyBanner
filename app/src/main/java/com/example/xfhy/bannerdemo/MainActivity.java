@@ -1,13 +1,16 @@
 package com.example.xfhy.bannerdemo;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
 
+import com.bumptech.glide.Glide;
 import com.xfhy.easybanner.ui.EasyBanner;
 import com.xfhy.easybanner.util.DensityUtil;
 
@@ -18,11 +21,13 @@ public class MainActivity extends AppCompatActivity {
 
     private EasyBanner mBanner;
     private LinearLayout mRootView;
+    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mContext = this;
 
         initView();
     }
@@ -32,7 +37,15 @@ public class MainActivity extends AppCompatActivity {
 
         //可以在布局里面写
         mBanner = (EasyBanner) findViewById(R.id.eb_banner);
+        //设置图片url和图片标题
         mBanner.initBanner(getImageUrlData(), getContentData());
+        //设置图片加载器
+        mBanner.setImageLoader(new EasyBanner.ImageLoader() {
+            @Override
+            public void loadImage(ImageView imageView, String url) {
+                Glide.with(mContext).load(url).into(imageView);
+            }
+        });
         //监听banner的item点击事件
         mBanner.setOnItemClickListener(new EasyBanner.OnItemClickListener() {
             @Override
@@ -47,6 +60,13 @@ public class MainActivity extends AppCompatActivity {
         easyBanner.initBanner(getImageUrlData(), getContentData());
         mRootView.addView(easyBanner,new LinearLayout.LayoutParams(LinearLayout
                 .LayoutParams.MATCH_PARENT, DensityUtil.dip2px(this,200)));
+        //设置图片加载器
+        easyBanner.setImageLoader(new EasyBanner.ImageLoader() {
+            @Override
+            public void loadImage(ImageView imageView, String url) {
+                Glide.with(mContext).load(url).into(imageView);
+            }
+        });
     }
 
     private List<String> getImageUrlData() {

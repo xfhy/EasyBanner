@@ -17,7 +17,6 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.example.easybanner.R;
 import com.xfhy.easybanner.util.DensityUtil;
 
@@ -40,6 +39,7 @@ import java.util.List;
  * PagerAdapter
  * 触摸时不能自动滑动
  * 实现ViewPager点击事件
+ * 让外部去实现图片加载，实现解耦
  * <p>
  * <p>
  * 遇到的坑：ViewPager把触摸事件消费了，外层重写onTouchEvent没用的，已经被子View消费的事件，是没用回传回来的，所以我直接在dispatchTouchEvent()
@@ -93,6 +93,10 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      * banner点击事件监听器
      */
     private OnItemClickListener listener;
+    /**
+     * 图片加载器
+     */
+    private ImageLoader imageLoader;
 
     public EasyBanner(@NonNull Context context) {
         super(context);
@@ -146,7 +150,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         initView();
         initData();
     }
-    //int touchFlags = 0;
+
     /**
      * 初始化数据
      */
@@ -159,7 +163,12 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
             //加载图片
             ImageView imageView = new ImageView(getContext());
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            Glide.with(getContext()).load(imageUrlList.get(i)).into(imageView);
+
+            //让外部去实现图片加载，实现解耦
+            if (imageLoader != null) {
+                imageLoader.loadImage(imageView, imageUrlList.get(i));
+            }
+
             imageViewList.add(imageView);
 
             //底部的小白点
@@ -311,6 +320,24 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     }
 
     /**
+     * 设置图片加载器  --必须设置 否则图片不会加载出来
+     *
+     * @param imageLoader
+     */
+    public void setImageLoader(@NonNull ImageLoader imageLoader) {
+        if (imageLoader == null) {
+            throw new IllegalArgumentException("图片加载器不能为空");
+        }
+        this.imageLoader = imageLoader;
+        if (imageViewList != null) {
+            int imageSize = imageViewList.size();
+            for (int i = 0; i < imageSize; i++) {
+                imageLoader.loadImage(imageViewList.get(i), imageUrlList.get(i));
+            }
+        }
+    }
+
+    /**
      * Item点击的”监听器“
      */
     public interface OnItemClickListener {
@@ -321,6 +348,19 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
          * @param title    当前点击item的标题
          */
         void onItemClick(int position, String title);
+    }
+
+    /**
+     * 向外部暴露的图片加载器，外界需要通过Glide或者其他方式来进行网络加载图片
+     */
+    public interface ImageLoader {
+        /**
+         * 加载图片
+         *
+         * @param imageView ImageView
+         * @param url       图片地址
+         */
+        void loadImage(ImageView imageView, String url);
     }
 
 }

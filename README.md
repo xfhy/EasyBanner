@@ -8,7 +8,7 @@
 ### 已实现的功能
 * 自动轮播
 * 无限左划右划
-* 加载网络图片（Glide），加载文字
+* 加载网络图片交给外部调用者（实现解耦），加载标题
 * 底部小白点可切换，大小可换，数量可动态增加
 * 触摸时不能滑动
 * 实现banner的item点击事件
@@ -31,7 +31,8 @@
 ``` java
 //可以在布局里面写
 mBanner = (EasyBanner) findViewById(R.id.eb_banner);
-mBanner.initBanner(getImageUrlData(), getContentData());
+//设置图片url和图片标题
+        mBanner.initBanner(getImageUrlData(), getContentData());
 ```
 
 ### 2.在代码中使用banner
@@ -39,12 +40,26 @@ mBanner.initBanner(getImageUrlData(), getContentData());
 ``` java
 //也可以直接动态生成
 EasyBanner easyBanner = new EasyBanner(this);
+//设置图片url和图片标题
 easyBanner.initBanner(getImageUrlData(), getContentData());
 mRootView.addView(easyBanner,new LinearLayout.LayoutParams(LinearLayout
         .LayoutParams.MATCH_PARENT, DensityUtil.dip2px(this,200)));
 ```
 
-### 3.实现点击事件
+
+### 3.设置图片加载器（必须）
+
+``` java
+//设置图片加载器
+        mBanner.setImageLoader(new EasyBanner.ImageLoader() {
+            @Override
+            public void loadImage(ImageView imageView, String url) {
+                Glide.with(mContext).load(url).into(imageView);
+            }
+        });
+```
+
+### 4.实现点击事件(非必须)
 
 ```java
 //监听banner的item点击事件
@@ -56,3 +71,5 @@ mBanner.setOnItemClickListener(new EasyBanner.OnItemClickListener() {
     }
 });
 ```
+
+基本使用就是这样，详情请看demo
