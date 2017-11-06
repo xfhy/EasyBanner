@@ -88,7 +88,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      * 用户是否正在触摸banner
      */
     private boolean isTouched = false;
-    private Handler mHandler = new Handler();
+    private PollingHandler mHandler = new PollingHandler();
     /**
      * banner点击事件监听器
      */
@@ -97,6 +97,14 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      * 图片加载器
      */
     private ImageLoader imageLoader;
+
+    private static class PollingHandler extends Handler {
+    }
+
+    /**
+     * 开启轮询?
+     */
+    private boolean pollingEnable = false;
 
     public EasyBanner(@NonNull Context context) {
         super(context);
@@ -137,7 +145,6 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     public void initBanner(@NonNull List<String> imageUrlList, @NonNull List<String> contentList) {
         this.imageUrlList = imageUrlList;
         this.contentList = contentList;
-        //TODO 这里需要限制是否为空  还有图片地址个数必须和文字内容条目数相等
         if (imageUrlList == null || contentList == null || imageUrlList.size() == 0 || contentList
                 .size() == 0) {
             throw new IllegalArgumentException("传入图片地址或广告内容不能为空");
@@ -190,9 +197,6 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
             mPointLayout.addView(pointView);  //添加到linearLayout中
         }
 
-        //延时
-        mHandler.postDelayed(delayRunnable, BANNER_SWITCH_DELAY_MILLIS);
-
         BannerAdapter bannerAdapter = new BannerAdapter();
         mViewPager.setAdapter(bannerAdapter);
         //页面切换监听器
@@ -226,7 +230,6 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
 
     @Override
     public void onPageScrollStateChanged(int state) {
-
     }
 
     @Override
@@ -239,6 +242,8 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
                 break;
             case MotionEvent.ACTION_UP:
                 isTouched = false;
+                break;
+            default:
                 break;
         }
         return super.dispatchTouchEvent(ev);
@@ -256,8 +261,10 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
                 mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
                 Log.e(TAG, "run: 自动滑动  isTouched:" + isTouched);
             }
-            //继续延迟切换广告
-            mHandler.postDelayed(delayRunnable, BANNER_SWITCH_DELAY_MILLIS);
+            if (pollingEnable) {
+                //继续延迟切换广告
+                mHandler.postDelayed(delayRunnable, BANNER_SWITCH_DELAY_MILLIS);
+            }
         }
     };
 
@@ -363,4 +370,58 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         void loadImage(ImageView imageView, String url);
     }
 
+    /**
+     * 获取当前轮播图是否在轮播
+     * true:正在轮播  false:没有在轮播
+     */
+    public boolean isPollingEnable() {
+        return pollingEnable;
+    }
+
+    /**
+     * 开始轮播
+     */
+    public void start() {
+        // 之前已经开启轮播  无需再开启
+        if (pollingEnable){
+            return;
+        }
+        pollingEnable = true;
+        mHandler.postDelayed(delayRunnable, BANNER_SWITCH_DELAY_MILLIS);
+    }
+
+    /**
+     * 结束轮播
+     */
+    public void stop() {
+        pollingEnable = false;
+        //移除Handler Callback 和 Message 防止内存泄漏
+        mHandler.removeCallbacksAndMessages(null);
+    }
+
+    /**
+     * 重新设置数据
+     * @param imageUrlList 图片地址集合
+     * @param contentList 标题集合
+     */
+    public void resetData(@NonNull List<String> imageUrlList, @NonNull List<String> contentList) {
+        this.imageUrlList = imageUrlList;
+        this.contentList = contentList;
+        if (imageUrlList == null || contentList == null || imageUrlList.size() == 0 || contentList
+                .size() == 0) {
+            throw new IllegalArgumentException("传入图片地址或广告内容不能为空");
+        }
+
+        if (imageUrlList.size() != contentList.size()) {
+            throw new IllegalArgumentException("传入图片地址或广告内容数量必须一致");
+        }
+
+        //判断是否之前在轮播
+        if (pollingEnable) {
+            //停止之前的轮播
+            stop();
+        }
+        //开始新的轮播
+        start();
+    }
 }

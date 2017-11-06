@@ -31,8 +31,10 @@
 ``` java
 //可以在布局里面写
 mBanner = (EasyBanner) findViewById(R.id.eb_banner);
-//设置图片url和图片标题
-        mBanner.initBanner(getImageUrlData(), getContentData());
+//初始化:设置图片url和图片标题
+mBanner.initBanner(getImageUrlData(), getContentData());
+// 开始轮播
+mBanner.start();
 ```
 
 ### 2.在代码中使用banner
@@ -40,10 +42,12 @@ mBanner = (EasyBanner) findViewById(R.id.eb_banner);
 ``` java
 //也可以直接动态生成
 EasyBanner easyBanner = new EasyBanner(this);
-//设置图片url和图片标题
+//初始化:设置图片url和图片标题
 easyBanner.initBanner(getImageUrlData(), getContentData());
 mRootView.addView(easyBanner,new LinearLayout.LayoutParams(LinearLayout
         .LayoutParams.MATCH_PARENT, DensityUtil.dip2px(this,200)));
+// 开始轮播
+mBanner.start();
 ```
 
 
@@ -51,12 +55,12 @@ mRootView.addView(easyBanner,new LinearLayout.LayoutParams(LinearLayout
 
 ``` java
 //设置图片加载器
-        mBanner.setImageLoader(new EasyBanner.ImageLoader() {
-            @Override
-            public void loadImage(ImageView imageView, String url) {
-                Glide.with(mContext).load(url).into(imageView);
-            }
-        });
+mBanner.setImageLoader(new EasyBanner.ImageLoader() {
+    @Override
+    public void loadImage(ImageView imageView, String url) {
+        Glide.with(mContext).load(url).into(imageView);
+    }
+});
 ```
 
 ### 4.实现点击事件(非必须)
@@ -70,6 +74,29 @@ mBanner.setOnItemClickListener(new EasyBanner.OnItemClickListener() {
                 .LENGTH_SHORT).show();
     }
 });
+```
+
+### 5.开始轮播(必须)
+
+初始化之后就可以调用start()方法开始轮播啦
+
+当然也可以在Activity或者fragment中的onResume()方法中调用start()方法开始轮播
+
+```java
+mBanner.start();
+```
+### 6.结束轮播(必须)
+
+当我们在离开当前Activity或者fragment时我们需要结束轮播,当然你也可以不结束.不结束轮播的话,它就一直在后台轮播....哈哈哈哈,这个问题暂时没有解决,,,,
+
+```java
+@Override
+protected void onStop() {
+    super.onStop();
+    if (mBanner != null) {
+        mBanner.stop();
+    }
+}
 ```
 
 基本使用就是这样，详情请看demo

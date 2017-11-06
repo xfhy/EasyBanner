@@ -3,6 +3,7 @@ package com.example.xfhy.bannerdemo;
 import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -12,16 +13,18 @@ import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.xfhy.easybanner.ui.EasyBanner;
-import com.xfhy.easybanner.util.DensityUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private EasyBanner mBanner;
     private LinearLayout mRootView;
     private Context mContext;
+    private Button btnNew;
+    private Button btnStart;
+    private Button btnStop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +37,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void initView() {
         mRootView = (LinearLayout) findViewById(R.id.ll_main);
+        btnNew = (Button) findViewById(R.id.btn_new);
+        btnStart = (Button) findViewById(R.id.btn_start);
+        btnStop = (Button) findViewById(R.id.btn_stop);
+
+        btnNew.setOnClickListener(this);
+        btnStart.setOnClickListener(this);
+        btnStop.setOnClickListener(this);
 
         //可以在布局里面写
         mBanner = (EasyBanner) findViewById(R.id.eb_banner);
@@ -50,10 +60,15 @@ public class MainActivity extends AppCompatActivity {
         mBanner.setOnItemClickListener(new EasyBanner.OnItemClickListener() {
             @Override
             public void onItemClick(int position, String title) {
-                Toast.makeText(MainActivity.this, "position:"+position+"   title:"+title, Toast
-                        .LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "position:" + position + "   title:" + title,
+                        Toast
+                                .LENGTH_SHORT).show();
             }
         });
+
+
+
+        /*
 
         //也可以直接动态生成
         EasyBanner easyBanner = new EasyBanner(this);
@@ -67,6 +82,8 @@ public class MainActivity extends AppCompatActivity {
                 Glide.with(mContext).load(url).into(imageView);
             }
         });
+
+        */
     }
 
     private List<String> getImageUrlData() {
@@ -88,4 +105,39 @@ public class MainActivity extends AppCompatActivity {
         contentList.add("「不主动追求你，也不明确拒绝你」，这就是现代人的爱情");
         return contentList;
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btn_new:
+                mBanner.resetData(getImageUrlData(), getContentData());
+                break;
+            case R.id.btn_start:
+                mBanner.start();
+                break;
+            case R.id.btn_stop:
+                mBanner.stop();
+                break;
+
+            default:
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.e("xfhy", "onStop");
+        if (mBanner != null) {
+            mBanner.stop();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mBanner != null) {
+            mBanner.start();
+        }
+    }
+
 }
