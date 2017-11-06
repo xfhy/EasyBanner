@@ -392,6 +392,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      */
     public void stop() {
         pollingEnable = false;
+        isTouched = false;
         //移除Handler Callback 和 Message 防止内存泄漏
         mHandler.removeCallbacksAndMessages(null);
     }
