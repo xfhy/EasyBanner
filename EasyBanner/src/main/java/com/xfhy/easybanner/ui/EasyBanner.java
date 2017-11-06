@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -47,7 +46,6 @@ import java.util.List;
  */
 
 public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeListener {
-    private static final String TAG = "EasyBanner";
     /**
      * 每个广告条目的图片地址
      */
@@ -259,7 +257,6 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
             if (!isTouched) {
                 //ViewPager设置为下一项
                 mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
-                Log.e(TAG, "run: 自动滑动  isTouched:" + isTouched);
             }
             if (pollingEnable) {
                 //继续延迟切换广告
