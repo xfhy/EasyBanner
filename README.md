@@ -15,6 +15,24 @@
 * 广告数目可以随意
 * 可以在代码中生成banner，也可以在xml布局中生成
 
+## 引入
+
+**Step 1.** Add the JitPack repository to your build file
+```gradle
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+**Step 2.** Add the dependency
+```gradle
+dependencies {
+		compile 'com.github.xfhy:EasyBanner:v1.0.3'
+	}
+```
+
 ## 简单使用
 
 > 使用前将该EasyBanner 这个module导入到自己的项目，并在app主项目中依赖此module.
