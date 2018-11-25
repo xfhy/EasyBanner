@@ -49,11 +49,11 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     /**
      * 每个广告条目的图片地址
      */
-    private List<String> imageUrlList;
+    private List<String> mImageUrlList;
     /**
      * 每个广告条目的文字内容
      */
-    private List<String> contentList;
+    private List<String> mContentList;
     /**
      * 用来盛放广告条目的
      */
@@ -69,11 +69,11 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     /**
      * 用来加载banner图片的
      */
-    private List<ImageView> imageViewList;
+    private List<ImageView> mImageViewList;
     /**
      * 小圆点上一次的位置
      */
-    private int lastPosition;
+    private int mLastPosition;
     /**
      * 底部小圆点默认大小
      */
@@ -85,16 +85,16 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     /**
      * 用户是否正在触摸banner
      */
-    private boolean isTouched = false;
+    private boolean mIsTouched = false;
     private PollingHandler mHandler = new PollingHandler();
     /**
      * banner点击事件监听器
      */
-    private OnItemClickListener listener;
+    private OnItemClickListener mListener;
     /**
      * 图片加载器
      */
-    private ImageLoader imageLoader;
+    private ImageLoader mImageLoader;
 
     private static class PollingHandler extends Handler {
     }
@@ -141,8 +141,8 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      * @param contentList  每个广告条目的文字内容
      */
     public void initBanner(@NonNull List<String> imageUrlList, @NonNull List<String> contentList) {
-        this.imageUrlList = imageUrlList;
-        this.contentList = contentList;
+        this.mImageUrlList = imageUrlList;
+        this.mContentList = contentList;
         if (imageUrlList == null || contentList == null || imageUrlList.size() == 0 || contentList
                 .size() == 0) {
             throw new IllegalArgumentException("传入图片地址或广告内容不能为空");
@@ -160,21 +160,21 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      * 初始化数据
      */
     private void initData() {
-        imageViewList = new ArrayList<>();
+        mImageViewList = new ArrayList<>();
         View pointView;
 
-        int bannerSize = imageUrlList.size();
+        int bannerSize = mImageUrlList.size();
         for (int i = 0; i < bannerSize; i++) {
             //加载图片
             ImageView imageView = new ImageView(getContext());
             imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 
             //让外部去实现图片加载，实现解耦
-            if (imageLoader != null) {
-                imageLoader.loadImage(imageView, imageUrlList.get(i));
+            if (mImageLoader != null) {
+                mImageLoader.loadImage(imageView, mImageUrlList.get(i));
             }
 
-            imageViewList.add(imageView);
+            mImageViewList.add(imageView);
 
             //底部的小白点
             pointView = new View(getContext());
@@ -201,10 +201,10 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         mViewPager.addOnPageChangeListener(this);
 
         //将ViewPager的起始位置放在  一个很大的数处，那么一开始就可以往左划动了   那个数必须是imageUrlList.size()的倍数
-        int remainder = (Integer.MAX_VALUE / 2) % imageUrlList.size();
+        int remainder = (Integer.MAX_VALUE / 2) % mImageUrlList.size();
         mViewPager.setCurrentItem(Integer.MAX_VALUE / 2 - remainder);
         //文本默认为第一项
-        mContent.setText(contentList.get(0));
+        mContent.setText(mContentList.get(0));
         mPointLayout.getChildAt(0).setEnabled(true);
     }
 
@@ -216,14 +216,14 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     @Override
     public void onPageSelected(int position) {
 
-        int newPosition = position % imageUrlList.size();
+        int newPosition = position % mImageUrlList.size();
 
         //当页面切换时，将底部白点的背景颜色换掉
         mPointLayout.getChildAt(newPosition).setEnabled(true);
-        mPointLayout.getChildAt(lastPosition).setEnabled(false);
+        mPointLayout.getChildAt(mLastPosition).setEnabled(false);
         //文字内容替换掉
-        mContent.setText(contentList.get(newPosition));
-        lastPosition = newPosition;
+        mContent.setText(mContentList.get(newPosition));
+        mLastPosition = newPosition;
     }
 
     @Override
@@ -234,12 +234,12 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
     public boolean dispatchTouchEvent(MotionEvent ev) {
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                isTouched = true;   //正在触摸  按下
+                mIsTouched = true;   //正在触摸  按下
                 break;
             case MotionEvent.ACTION_MOVE:
                 break;
             case MotionEvent.ACTION_UP:
-                isTouched = false;
+                mIsTouched = false;
                 break;
             default:
                 break;
@@ -254,7 +254,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         @Override
         public void run() {
             //用户在触摸时不能进行自动滑动
-            if (!isTouched) {
+            if (!mIsTouched) {
                 //ViewPager设置为下一项
                 mViewPager.setCurrentItem(mViewPager.getCurrentItem() + 1);
             }
@@ -288,16 +288,27 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            final int newPosition = position % imageUrlList.size();
-            ImageView imageView = imageViewList.get(newPosition);
+            final int newPosition = position % mImageUrlList.size();
+            ImageView imageView;
+            if (mImageUrlList.size() < 3) {
+                //如果个数小于2   那么,直接不缓存了,否则会导致崩溃
+                imageView = new ImageView(getContext());
+                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                if (mImageLoader != null && mImageUrlList != null && newPosition < mImageUrlList.size()) {
+                    mImageLoader.loadImage(imageView, mImageUrlList.get(newPosition));
+                }
+            } else {
+                //数据大于3,保持原逻辑
+                imageView = mImageViewList.get(newPosition);
+            }
 
             //设置点击事件
             imageView.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     //回调
-                    if (listener != null) {
-                        listener.onItemClick(newPosition, contentList.get(newPosition));
+                    if (mListener != null) {
+                        mListener.onItemClick(newPosition, mContentList.get(newPosition));
                     }
                 }
             });
@@ -320,7 +331,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         if (listener == null) {
             throw new IllegalArgumentException("Item监听器不能为空！");
         }
-        this.listener = listener;
+        this.mListener = listener;
     }
 
     /**
@@ -332,11 +343,11 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
         if (imageLoader == null) {
             throw new IllegalArgumentException("图片加载器不能为空");
         }
-        this.imageLoader = imageLoader;
-        if (imageViewList != null) {
-            int imageSize = imageViewList.size();
+        this.mImageLoader = imageLoader;
+        if (mImageViewList != null) {
+            int imageSize = mImageViewList.size();
             for (int i = 0; i < imageSize; i++) {
-                imageLoader.loadImage(imageViewList.get(i), imageUrlList.get(i));
+                imageLoader.loadImage(mImageViewList.get(i), mImageUrlList.get(i));
             }
         }
     }
@@ -380,7 +391,7 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      */
     public void start() {
         // 之前已经开启轮播  无需再开启
-        if (pollingEnable){
+        if (pollingEnable) {
             return;
         }
         pollingEnable = true;
@@ -392,19 +403,20 @@ public class EasyBanner extends FrameLayout implements ViewPager.OnPageChangeLis
      */
     public void stop() {
         pollingEnable = false;
-        isTouched = false;
+        mIsTouched = false;
         //移除Handler Callback 和 Message 防止内存泄漏
         mHandler.removeCallbacksAndMessages(null);
     }
 
     /**
      * 重新设置数据
+     *
      * @param imageUrlList 图片地址集合
-     * @param contentList 标题集合
+     * @param contentList  标题集合
      */
     public void resetData(@NonNull List<String> imageUrlList, @NonNull List<String> contentList) {
-        this.imageUrlList = imageUrlList;
-        this.contentList = contentList;
+        this.mImageUrlList = imageUrlList;
+        this.mContentList = contentList;
         if (imageUrlList == null || contentList == null || imageUrlList.size() == 0 || contentList
                 .size() == 0) {
             throw new IllegalArgumentException("传入图片地址或广告内容不能为空");
